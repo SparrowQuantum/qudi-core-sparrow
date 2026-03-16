@@ -25,7 +25,7 @@ import uuid
 from abc import abstractmethod
 from uuid import uuid4
 from fysom import Fysom
-from PySide2 import QtCore, QtGui, QtWidgets
+from qtpy import QtCore, QtGui, QtWidgets
 from typing import Any, Mapping, Optional, Callable, Union, Dict
 
 from qudi.core.configoption import MissingOption

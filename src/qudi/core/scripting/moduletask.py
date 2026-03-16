@@ -25,7 +25,7 @@ __all__ = ['ModuleTask', 'ModuleTaskStateMachine']
 
 
 from fysom import Fysom, Canceled
-from PySide2 import QtCore
+from qtpy import QtCore
 from typing import Mapping, Any, Optional, Callable, Union
 
 from qudi.core.scripting.modulescript import ModuleScript, ModuleScriptInterrupted

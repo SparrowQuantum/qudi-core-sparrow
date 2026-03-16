@@ -25,7 +25,7 @@ __all__ = ('main', 'ConfigurationEditorMainWindow', 'ConfigurationEditor')
 import os
 import sys
 from typing import Optional, Mapping, Dict, Any
-from PySide2 import QtCore, QtGui, QtWidgets
+from qtpy import QtCore, QtGui, QtWidgets
 from qudi.util.paths import get_main_dir, get_default_config_dir, get_artwork_dir
 from qudi.core.config import Configuration
 

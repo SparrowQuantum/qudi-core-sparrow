@@ -28,7 +28,7 @@ import importlib
 import copy
 import inspect
 from abc import abstractmethod
-from PySide2 import QtCore
+from qtpy import QtCore
 from logging import Logger
 from typing import Mapping, Any, Type, Optional, Union, Dict
 

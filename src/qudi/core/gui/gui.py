@@ -22,7 +22,7 @@ If not, see <https://www.gnu.org/licenses/>.
 import os
 import weakref
 import platform
-from PySide2 import QtCore, QtGui, QtWidgets
+from qtpy import QtCore, QtGui, QtWidgets
 from qudi.core.gui.main_gui.main_gui import QudiMainGui
 from qudi.core.modulemanager import ModuleManager
 from qudi.util.paths import get_artwork_dir

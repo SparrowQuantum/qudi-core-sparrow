@@ -57,7 +57,7 @@ __all__ = ['FilePath', 'RealNumber', 'ParameterWidgetMapper']
 import inspect
 import typing
 from os import PathLike
-from PySide2 import QtWidgets
+from qtpy import QtWidgets
 from typing import Callable, Any, Set, FrozenSet, MutableSequence, Mapping, Tuple, Dict, Type, Union
 from typing import get_origin, get_args, Iterable, Sequence
 

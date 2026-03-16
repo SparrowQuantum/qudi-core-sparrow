@@ -22,7 +22,7 @@ If not, see <https://www.gnu.org/licenses/>.
 
 __all__ = ['VerticalLine', 'HorizontalLine']
 
-from PySide2 import QtWidgets
+from qtpy import QtWidgets
 from typing import Optional
 
 

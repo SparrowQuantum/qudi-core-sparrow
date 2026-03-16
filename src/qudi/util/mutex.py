@@ -24,8 +24,8 @@ If not, see <https://www.gnu.org/licenses/>.
 
 __all__ = ['Mutex', 'RecursiveMutex']
 
-from PySide2.QtCore import QMutex as _QMutex
-from PySide2.QtCore import QRecursiveMutex as _QRecursiveMutex
+from qtpy.QtCore import QMutex as _QMutex
+from qtpy.QtCore import QRecursiveMutex as _QRecursiveMutex
 from typing import Optional, Union
 
 

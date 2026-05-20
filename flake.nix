@@ -21,6 +21,15 @@
         pkgs = nixpkgs.legacyPackages.${system};
         inherit (pkgs) lib;
 
+        qtPluginPath = lib.makeSearchPath "lib/qt-6/plugins" [
+          pkgs.qt6.qtbase
+          pyPkgs.pyside6
+        ];
+        qtQmlPath = lib.makeSearchPath "lib/qt-6/qml" [
+          pkgs.qt6.qtdeclarative
+          pyPkgs.pyside6
+        ];
+
         # Python with security overrides from utils-nix
         py = utils-nix.lib.${system}.python;
         pyPkgsOld = utils-nix.lib.${system}.pythonPackages;
@@ -80,6 +89,10 @@
           pyproject = true;
           src = ./.;
 
+          nativeBuildInputs = [
+            pkgs.makeWrapper
+          ];
+
           build-system = with pyPkgs; [
             setuptools
             setuptools-scm
@@ -89,7 +102,28 @@
           dependencies = pyDeps;
 
           pythonImportsCheck = ["qudi"];
+
+          postFixup = ''
+            wrapProgram "$out/bin/qudi" \
+              --prefix QT_PLUGIN_PATH : "${qtPluginPath}" \
+              --prefix QML2_IMPORT_PATH : "${qtQmlPath}"
+          '';
         };
+
+        qudiLauncher = pkgs.writeScriptBin "qudi-launch" ''
+          #!${devEnv}/bin/python
+
+          import os
+          import subprocess
+          import sys
+
+          subprocess.run(
+              ["${devEnv}/bin/python", "-m", "qudi.core.qudikernel", "ensure"],
+              check=True,
+          )
+
+          os.execv("${qudiCore}/bin/qudi", ["${qudiCore}/bin/qudi", *sys.argv[1:]])
+        '';
 
         devEnv = py.withPackages (ps:
           with ps; [
@@ -104,11 +138,11 @@
         apps = {
           default = {
             type = "app";
-            program = "${qudiCore}/bin/qudi";
+            program = "${qudiLauncher}/bin/qudi-launch";
           };
           qudi-core = {
             type = "app";
-            program = "${qudiCore}/bin/qudi";
+            program = "${qudiLauncher}/bin/qudi-launch";
           };
         };
 
@@ -125,6 +159,10 @@
             pkgs.fd
             devEnv
           ];
+
+          shellHook = ''
+            ${devEnv}/bin/python -m qudi.core.qudikernel ensure
+          '';
         };
       }
     );

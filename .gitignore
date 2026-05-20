@@ -58,6 +58,7 @@ share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+result
 
 # Installer logs
 pip-log.txt

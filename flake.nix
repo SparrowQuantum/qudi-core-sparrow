@@ -148,7 +148,6 @@
 
         devShells.default = pkgs.mkShell {
           packages = [
-            utils-nix.packages.${system}.fmt
             utils-nix.packages.${system}.ruff
             utils-nix.packages.${system}.alejandra
             utils-nix.packages.${system}.deadnix
@@ -157,6 +156,8 @@
             pkgs.which
             pkgs.gh
             pkgs.fd
+            pkgs.xpra
+            pkgs.xauth
             devEnv
           ];
 

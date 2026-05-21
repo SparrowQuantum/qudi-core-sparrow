@@ -88,6 +88,18 @@
 
           dependencies = pyDeps;
 
+          nativeBuildInputs = [
+            pkgs.qt6.wrapQtAppsHook
+          ];
+          buildInputs = [
+            pkgs.qt6.qtsvg # SVG QIcon support. Propagates qtbase
+          ];
+
+          # Wrap app to set environment variables for Qt plugins
+          postFixup = ''
+            wrapQtApp "$out/bin/qudi"
+          '';
+
           pythonImportsCheck = ["qudi"];
         };
 

@@ -2,10 +2,6 @@
   description = "Qudi core development flake";
 
   inputs = {
-    utils-nix = {
-      url = "git+ssh://git@github.com/SparrowQuantum/utils-nix.git";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
   };
@@ -13,7 +9,6 @@
   outputs = {
     nixpkgs,
     flake-utils,
-    utils-nix,
     ...
   }:
     flake-utils.lib.eachDefaultSystem (
@@ -21,12 +16,10 @@
         pkgs = nixpkgs.legacyPackages.${system};
         inherit (pkgs) lib;
 
-        # Python with security overrides from utils-nix
-        py = utils-nix.lib.${system}.python;
-        pyPkgsOld = utils-nix.lib.${system}.pythonPackages;
-        pyPkgs = pyPkgsOld.override {
+        py = pkgs.python313;
+        pyPkgs = py.pkgs.override {
           overrides = _: super: {
-            # Project needs rpyc 5.*.* but nixpkgs is
+            # Project needs rpyc 5.*.* but nixpkgs is currently on >6.0.0
             rpyc = super.rpyc.overrideAttrs (_: rec {
               version = "5.3.1";
               src = pkgs.fetchFromGitHub {
@@ -39,6 +32,7 @@
           };
         };
 
+        # Fysom does not exist in nixpkgs, so we build it ourselves
         fysom = pyPkgs.buildPythonPackage rec {
           pname = "fysom";
           version = "2.1.6";
@@ -55,25 +49,6 @@
           };
         };
 
-        pyDeps = with pyPkgs; [
-          cycler
-          entrypoints
-          fysom
-          gitpython
-          jupyter
-          jupytext
-          lmfit
-          matplotlib
-          numpy
-          pyqtgraph
-          pyside6
-          rpyc
-          ruamel-yaml
-          scipy
-          jsonschema
-          qtconsole
-        ];
-
         qudiCore = pyPkgs.buildPythonPackage {
           pname = "qudi-core";
           version = pkgs.lib.strings.removeSuffix "\n" (builtins.readFile ./VERSION);
@@ -86,7 +61,24 @@
             wheel
           ];
 
-          dependencies = pyDeps;
+          dependencies = with pyPkgs; [
+            cycler
+            entrypoints
+            fysom
+            gitpython
+            jupyter
+            jupytext
+            lmfit
+            matplotlib
+            numpy
+            pyqtgraph
+            pyside6
+            rpyc
+            ruamel-yaml
+            scipy
+            jsonschema
+            qtconsole
+          ];
 
           nativeBuildInputs = [
             pkgs.qt6.wrapQtAppsHook
@@ -101,8 +93,15 @@
           '';
 
           pythonImportsCheck = ["qudi"];
+
+          meta = {
+            description = "A framework for modular measurement applications";
+            homepage = "https://github.com/SparrowQuantum/qudi-core-sparrow";
+            license = lib.licenses.lgpl3;
+          };
         };
 
+        # Simple script that ensures the qudi Jupyter kernel is installed before launching
         qudiLauncher = pkgs.writeScriptBin "qudi-launch" ''
           #!${devEnv}/bin/python
 
@@ -123,10 +122,12 @@
             qudiCore
           ]);
 
-        pythonAudit = utils-nix.lib.${system}.mkPythonAudit [];
-
         fmtPackage = pkgs.writeShellScriptBin "fmt" ''
           ${pkgs.alejandra}/bin/alejandra . --quiet
+        '';
+
+        lintPackage = pkgs.writeShellScriptBin "lint-project" ''
+          ${pkgs.deadnix}/bin/deadnix .
         '';
       in {
         packages = {
@@ -141,21 +142,21 @@
               description = "Launch Qudi-core";
             };
           };
-          python-audit = {
+          lint-project = {
             type = "app";
-            program = "${pythonAudit}/bin/python-audit";
+            program = "${lintPackage}/bin/lint-project";
             meta = {
-              description = "Audit Python dependencies for security vulnerabilities";
+              description = "Run deadnix on the project";
             };
           };
         };
 
         devShells.default = pkgs.mkShell {
           packages = [
-            utils-nix.packages.${system}.ruff
-            utils-nix.packages.${system}.alejandra
-            utils-nix.packages.${system}.deadnix
-            utils-nix.packages.${system}.just
+            pkgs.ruff
+            pkgs.alejandra
+            pkgs.deadnix
+            pkgs.just
             pkgs.uv
             pkgs.which
             pkgs.gh
@@ -163,17 +164,6 @@
             devEnv
             qudiLauncher
           ];
-
-          shellHook = ''
-            ${utils-nix.lib.${system}.mkInstallGitHooks {
-              pre-commit = [
-                utils-nix.packages.${system}.git-hook-nix-fmt-check
-              ];
-              commit-msg = [
-                utils-nix.packages.${system}.git-hook-conventional-commit
-              ];
-            }}
-          '';
         };
 
         formatter = fmtPackage;

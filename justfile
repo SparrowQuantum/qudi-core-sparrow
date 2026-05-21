@@ -27,8 +27,7 @@ fmt:
 
 # Lint the project
 lint:
-    @nix develop -c deadnix .
+    @nix run .#lint-project
 
-# Run Python security audit
-audit:
-    @nix run .#python-audit
+# Run local CI
+ci: check fmt lint build

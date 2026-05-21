@@ -1,29 +1,30 @@
 _default:
     just --list
 
-develop:
-    nix develop
-
+# Build qudi-core
 build:
-    nix build .#qudi-core
+    nix build
 
-run *args:
-    nix run . -- $args
+# Run qudi-core with GUI
+qudi:
+    nix run
 
-run-headless *args:
-    nix run . -- -g $args
+# Run qudi-core without GUI
+qudi-headless:
+    nix run . -- -g 
 
+# Run a Jupyter notebook server for the given directory
+notebook DIR='.':
+    nix develop -c jupyter notebook --notebook-dir={{DIR}}
+
+# Check the flake
 check:
     nix flake check
 
+# Format the project
 fmt:
     nix develop -c alejandra flake.nix
 
-xpra-start display="100":
-    nix develop -c xpra start :{{display}} --daemon=no --exit-with-children --start-child "nix run ."
-
-xpra-stop display="100":
-    nix develop -c xpra stop :{{display}}
-
-xpra-list:
-    nix develop -c xpra list
+# Run Python security audit
+audit:
+    nix run .#python-audit

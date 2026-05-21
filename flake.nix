@@ -34,9 +34,9 @@
         py = utils-nix.lib.${system}.python;
         pyPkgsOld = utils-nix.lib.${system}.pythonPackages;
         pyPkgs = pyPkgsOld.override {
-          overrides = self: super: {
+          overrides = _: super: {
             # Project needs rpyc 5.*.* but nixpkgs is
-            rpyc = super.rpyc.overrideAttrs (oldAttrs: rec {
+            rpyc = super.rpyc.overrideAttrs (_: rec {
               version = "5.3.1";
               src = pkgs.fetchFromGitHub {
                 owner = "tomerfiliba";
@@ -129,10 +129,15 @@
           with ps; [
             qudiCore
           ]);
+
+        pythonAudit = utils-nix.lib.${system}.mkPythonAudit [];
+
+        fmtPackage = pkgs.writeShellScriptBin "fmt" ''
+          ${pkgs.alejandra}/bin/alejandra .
+        '';
       in {
         packages = {
           default = qudiCore;
-          qudi-core = qudiCore;
         };
 
         apps = {
@@ -140,9 +145,9 @@
             type = "app";
             program = "${qudiLauncher}/bin/qudi-launch";
           };
-          qudi-core = {
+          python-audit = {
             type = "app";
-            program = "${qudiLauncher}/bin/qudi-launch";
+            program = "${pythonAudit}/bin/python-audit";
           };
         };
 
@@ -156,15 +161,12 @@
             pkgs.which
             pkgs.gh
             pkgs.fd
-            pkgs.xpra
-            pkgs.xauth
             devEnv
+            qudiLauncher
           ];
-
-          shellHook = ''
-            ${devEnv}/bin/python -m qudi.core.qudikernel ensure
-          '';
         };
+
+        formatter = fmtPackage;
       }
     );
 }

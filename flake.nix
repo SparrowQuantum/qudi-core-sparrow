@@ -16,11 +16,10 @@
         pkgs = nixpkgs.legacyPackages.${system};
         inherit (pkgs) lib;
 
-        python = pkgs.python313;
-        pyPkgs = python.pkgs.override {
-          overrides = _: super: {
+        python = pkgs.python313.override {
+          packageOverrides = _: super: {
             # Project needs rpyc 5.*.* but nixpkgs is currently on >6.0.0
-            rpyc = super.rpyc.overrideAttrs (_: rec {
+            rpyc = super.rpyc.overridePythonAttrs (_: rec {
               version = "5.3.1";
               src = pkgs.fetchFromGitHub {
                 owner = "tomerfiliba";
@@ -31,6 +30,7 @@
             });
           };
         };
+        pyPkgs = python.pkgs;
 
         # Fysom does not exist in nixpkgs, so we build it ourselves
         fysom = pyPkgs.buildPythonPackage rec {
@@ -51,7 +51,7 @@
 
         qudiCore = pyPkgs.buildPythonPackage {
           pname = "qudi-core";
-          version = pkgs.lib.strings.removeSuffix "\n" (builtins.readFile ./VERSION);
+          version = lib.strings.removeSuffix "\n" (builtins.readFile ./VERSION);
           pyproject = true;
           src = ./.;
 
@@ -117,10 +117,7 @@
           os.execv("${qudiCore}/bin/qudi", ["${qudiCore}/bin/qudi", *sys.argv[1:]])
         '';
 
-        devEnv = python.withPackages (ps:
-          with ps; [
-            qudiCore
-          ]);
+        devEnv = python.withPackages (_: [qudiCore]);
 
         fmtPackage = pkgs.writeShellScriptBin "fmt" ''
           ${pkgs.alejandra}/bin/alejandra . --quiet
@@ -131,9 +128,9 @@
         '';
       in {
         packages = {
-          default = qudiCore;
           qudi-core = qudiCore;
           fysom = fysom;
+          python = python;
         };
 
         apps = {
@@ -166,11 +163,6 @@
             devEnv
             qudiLauncher
           ];
-        };
-
-        lib = {
-          # Export python and pyPkgs for use in other flakes that want to build on top of qudi-core
-          inherit python pyPkgs;
         };
 
         formatter = fmtPackage;

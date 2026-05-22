@@ -16,8 +16,8 @@
         pkgs = nixpkgs.legacyPackages.${system};
         inherit (pkgs) lib;
 
-        py = pkgs.python313;
-        pyPkgs = py.pkgs.override {
+        python = pkgs.python313;
+        pyPkgs = python.pkgs.override {
           overrides = _: super: {
             # Project needs rpyc 5.*.* but nixpkgs is currently on >6.0.0
             rpyc = super.rpyc.overrideAttrs (_: rec {
@@ -117,7 +117,7 @@
           os.execv("${qudiCore}/bin/qudi", ["${qudiCore}/bin/qudi", *sys.argv[1:]])
         '';
 
-        devEnv = py.withPackages (ps:
+        devEnv = python.withPackages (ps:
           with ps; [
             qudiCore
           ]);
@@ -166,6 +166,11 @@
             devEnv
             qudiLauncher
           ];
+        };
+
+        lib = {
+          # Export python and pyPkgs for use in other flakes that want to build on top of qudi-core
+          inherit python pyPkgs;
         };
 
         formatter = fmtPackage;

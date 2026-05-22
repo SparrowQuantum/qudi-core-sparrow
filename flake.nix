@@ -128,6 +128,7 @@
         '';
       in {
         packages = {
+          default = qudiCore;
           qudi-core = qudiCore;
           fysom = fysom;
           python = python;

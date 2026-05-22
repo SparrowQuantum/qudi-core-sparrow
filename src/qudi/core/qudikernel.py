@@ -34,7 +34,6 @@ from ipykernel.ipkernel import IPythonKernel
 
 from qudi.core.config import Configuration, ValidationError, YAMLError
 
-
 KERNEL_NAME = 'qudi'
 
 

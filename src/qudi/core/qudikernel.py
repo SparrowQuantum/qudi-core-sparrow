@@ -35,6 +35,9 @@ from ipykernel.ipkernel import IPythonKernel
 from qudi.core.config import Configuration, ValidationError, YAMLError
 
 
+KERNEL_NAME = 'qudi'
+
+
 def install_kernel():
     from jupyter_client.kernelspec import KernelSpecManager
 
@@ -57,8 +60,8 @@ def install_kernel():
 
         # install kernelspec folder
         kernel_spec_manager = KernelSpecManager()
-        dest = kernel_spec_manager.install_kernel_spec(path, kernel_name='qudi', user=True)
-        print(f'> Successfully installed kernelspec "qudi" in {dest}')
+        dest = kernel_spec_manager.install_kernel_spec(path, kernel_name=KERNEL_NAME, user=True)
+        print(f'> Successfully installed kernelspec "{KERNEL_NAME}" in {dest}')
     finally:
         if os.path.isdir(tempdir):
             shutil.rmtree(tempdir)
@@ -67,21 +70,21 @@ def install_kernel():
 def uninstall_kernel():
     from jupyter_client.kernelspec import KernelSpecManager
 
-    print('> Uninstalling qudi kernel...')
+    print(f'> Uninstalling {KERNEL_NAME} kernel...')
     try:
-        KernelSpecManager().remove_kernel_spec('qudi')
+        KernelSpecManager().remove_kernel_spec(KERNEL_NAME)
     except KeyError:
-        print('> No kernelspec "qudi" found')
+        print(f'> No kernelspec "{KERNEL_NAME}" found')
     else:
-        print('> Successfully uninstalled kernelspec "qudi"')
+        print(f'> Successfully uninstalled kernelspec "{KERNEL_NAME}"')
 
 
-def _kernel_spec_needs_update(kernel_name='qudi'):
+def _kernel_spec_needs_update():
     from jupyter_client.kernelspec import KernelSpecManager, NoSuchKernel
 
     manager = KernelSpecManager()
     try:
-        spec = manager.get_kernel_spec(kernel_name)
+        spec = manager.get_kernel_spec(KERNEL_NAME)
     except NoSuchKernel:
         return True
 
@@ -106,8 +109,8 @@ def _kernel_spec_needs_update(kernel_name='qudi'):
     return False
 
 
-def ensure_kernel_installed(kernel_name='qudi'):
-    if _kernel_spec_needs_update(kernel_name=kernel_name):
+def ensure_kernel_installed():
+    if _kernel_spec_needs_update():
         install_kernel()
 
 

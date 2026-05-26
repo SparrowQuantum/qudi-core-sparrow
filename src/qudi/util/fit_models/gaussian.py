@@ -59,12 +59,13 @@ def multiple_gaussian(x, centers, sigmas, amplitudes):
 class Gaussian(FitModelBase):
     """
     """
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.set_param_hint('offset', value=0, min=-np.inf, max=np.inf)
         self.set_param_hint('amplitude', value=0, min=-np.inf, max=np.inf)
-        self.set_param_hint('center', value=0., min=-np.inf, max=np.inf)
-        self.set_param_hint('sigma', value=0., min=0., max=np.inf)
+        self.set_param_hint('center', value=0.0, min=-np.inf, max=np.inf)
+        self.set_param_hint('sigma', value=0.0, min=0.0, max=np.inf)
 
     @staticmethod
     def _model_function(x, offset, center, sigma, amplitude):
@@ -74,23 +75,23 @@ class Gaussian(FitModelBase):
     def estimate_peak(self, data, x):
         # Sort and compute baseline from raw ends
         data, x = sort_check_data(data, x)
-        n_end    = max(2, len(data) // 20)
+        n_end = max(2, len(data) // 20)
         baseline = np.min(np.r_[data[:n_end], data[-n_end:]])
-        data_bc  = data - baseline
+        data_bc = data - baseline
 
         # Smooth for peak & half-max detection
-        filt      = max(1, round(len(x) / 20))
+        filt = max(1, round(len(x) / 20))
         smooth, _ = smooth_data(data_bc, filt)
-        idx_peak  = int(np.argmax(smooth))
-        center    = x[idx_peak]
+        idx_peak = int(np.argmax(smooth))
+        center = x[idx_peak]
         amplitude = smooth[idx_peak]
-        half_max  = amplitude / 2
+        half_max = amplitude / 2
 
         # Find FWHM edges by walking outwards and interpolating
         def interp_edge(i, direction):
-            if i + direction >= len(x)  or i + direction < 0 :
+            if i + direction >= len(x) or i + direction < 0:
                 return None
-            while 0 <= i + direction < len(x)-1 and smooth[i] >= half_max:
+            while 0 <= i + direction < len(x) - 1 and smooth[i] >= half_max:
                 i += direction
             i0, i1 = (i, i + 1) if direction > 1 else (i - 1, i)
 
@@ -98,35 +99,29 @@ class Gaussian(FitModelBase):
             x1, y1 = x[i1], smooth[i1]
             return x0 + (half_max - y0) * (x1 - x0) / (y1 - y0) if y1 != y0 else x0
 
-        left_edge  = interp_edge(idx_peak, -1)
+        left_edge = interp_edge(idx_peak, -1)
         right_edge = interp_edge(idx_peak, +1)
         if left_edge and right_edge:
-            fwhm       = right_edge - left_edge
+            fwhm = right_edge - left_edge
         elif left_edge:
             fwhm = (center - left_edge) * 2
         elif right_edge:
-            fwhm = (right_edge - center) *2
+            fwhm = (right_edge - center) * 2
         else:
-            fwhm = min(center - x[0], x[-1] - center) *2
-        sigma      = fwhm / (2 * np.sqrt(2 * np.log(2)))
+            fwhm = min(center - x[0], x[-1] - center) * 2
+        sigma = fwhm / (2 * np.sqrt(2 * np.log(2)))
 
         # Build params with sensible bounds
-        span      = x[-1] - x[0]
-        dx        = float(np.min(np.diff(x))) if len(x) > 1 else span
+        span = x[-1] - x[0]
+        dx = float(np.min(np.diff(x))) if len(x) > 1 else span
         data_span = smooth.max() - smooth.min()
 
         estimate = self.make_params()
         estimate['amplitude'].set(value=amplitude, min=0, max=2 * amplitude)
-        estimate['center'].set(value=center,
-                              min=x[0] - span/2, max=x[-1] + span/2)
-        estimate['sigma'].set(value=max(sigma, dx),
-                             min=dx, max=span)
-        estimate['offset'].set(value=baseline,
-                              min=baseline - data_span,
-                              max=baseline + data_span)
+        estimate['center'].set(value=center, min=x[0] - span / 2, max=x[-1] + span / 2)
+        estimate['sigma'].set(value=max(sigma, dx), min=dx, max=span)
+        estimate['offset'].set(value=baseline, min=baseline - data_span, max=baseline + data_span)
         return estimate
-
-
 
     @estimator('Dip')
     def estimate_dip(self, data, x):

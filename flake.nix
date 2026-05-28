@@ -46,7 +46,7 @@
           };
         };
 
-        mkQudiPackage = {
+        mkQudiCore = {
           pkgs,
           python,
         }:
@@ -103,7 +103,7 @@
           };
 
         python = pkgs.python313.override {packageOverrides = pythonOverrides;};
-        qudiCore = mkQudiPackage {inherit pkgs python;};
+        qudiCore = mkQudiCore {inherit pkgs python;};
 
         devEnv = python.withPackages (_: [qudiCore]);
 
@@ -122,7 +122,7 @@
 
         lib = {
           pythonOverrides = pythonOverrides;
-          mkQudiPackage = mkQudiPackage;
+          mkQudiCore = mkQudiCore;
         };
 
         apps = {

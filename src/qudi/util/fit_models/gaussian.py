@@ -93,7 +93,8 @@ class Gaussian(FitModelBase):
                 return None
             while 0 <= i + direction < len(x) - 1 and smooth[i] >= half_max:
                 i += direction
-            i0, i1 = (i, i + 1) if direction > 1 else (i - 1, i)
+            i0, i1 = (i, i + 1) if direction < 0 else (i - 1, i)
+            breakpoint()
 
             x0, y0 = x[i0], smooth[i0]
             x1, y1 = x[i1], smooth[i1]
@@ -101,11 +102,11 @@ class Gaussian(FitModelBase):
 
         left_edge = interp_edge(idx_peak, -1)
         right_edge = interp_edge(idx_peak, +1)
-        if left_edge and right_edge:
+        if left_edge is not None and right_edge is not None:
             fwhm = right_edge - left_edge
-        elif left_edge:
+        elif left_edge is not None:
             fwhm = (center - left_edge) * 2
-        elif right_edge:
+        elif right_edge is not None:
             fwhm = (right_edge - center) * 2
         else:
             fwhm = min(center - x[0], x[-1] - center) * 2

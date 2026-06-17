@@ -94,7 +94,6 @@ class Gaussian(FitModelBase):
             while 0 <= i + direction < len(x) - 1 and smooth[i] >= half_max:
                 i += direction
             i0, i1 = (i, i + 1) if direction < 0 else (i - 1, i)
-            breakpoint()
 
             x0, y0 = x[i0], smooth[i0]
             x1, y1 = x[i1], smooth[i1]

@@ -20,7 +20,7 @@ If not, see <https://www.gnu.org/licenses/>.
 """
 
 __all__ = ['install_kernel', 'uninstall_kernel', 'QudiIPythonKernel', 'QudiKernelClient',
-           'QudiKernelService']
+           'QudiKernelService', 'ensure_kernel_installed']
 
 import os
 import sys
@@ -29,9 +29,12 @@ import json
 import shutil
 import logging
 import tempfile
+from pathlib import Path
 from ipykernel.ipkernel import IPythonKernel
 
 from qudi.core.config import Configuration, ValidationError, YAMLError
+
+KERNEL_NAME = 'qudi'
 
 
 def install_kernel():
@@ -56,8 +59,8 @@ def install_kernel():
 
         # install kernelspec folder
         kernel_spec_manager = KernelSpecManager()
-        dest = kernel_spec_manager.install_kernel_spec(path, kernel_name='qudi', user=True)
-        print(f'> Successfully installed kernelspec "qudi" in {dest}')
+        dest = kernel_spec_manager.install_kernel_spec(path, kernel_name=KERNEL_NAME, user=True)
+        print(f'> Successfully installed kernelspec "{KERNEL_NAME}" in {dest}')
     finally:
         if os.path.isdir(tempdir):
             shutil.rmtree(tempdir)
@@ -66,13 +69,48 @@ def install_kernel():
 def uninstall_kernel():
     from jupyter_client.kernelspec import KernelSpecManager
 
-    print('> Uninstalling qudi kernel...')
+    print(f'> Uninstalling {KERNEL_NAME} kernel...')
     try:
-        KernelSpecManager().remove_kernel_spec('qudi')
+        KernelSpecManager().remove_kernel_spec(KERNEL_NAME)
     except KeyError:
-        print('> No kernelspec "qudi" found')
+        print(f'> No kernelspec "{KERNEL_NAME}" found')
     else:
-        print('> Successfully uninstalled kernelspec "qudi"')
+        print(f'> Successfully uninstalled kernelspec "{KERNEL_NAME}"')
+
+
+def _kernel_spec_needs_update():
+    from jupyter_client.kernelspec import KernelSpecManager, NoSuchKernel
+
+    manager = KernelSpecManager()
+    try:
+        spec = manager.get_kernel_spec(KERNEL_NAME)
+    except NoSuchKernel:
+        return True
+
+    if not spec.argv:
+        return True
+
+    executable = Path(spec.argv[0]).expanduser()
+    if not executable.is_file():
+        return True
+
+    expected_executable = Path(sys.executable).resolve()
+    if executable.resolve() != expected_executable:
+        return True
+
+    expected_kernel_path = Path(__file__).resolve()
+    if len(spec.argv) < 2:
+        return True
+
+    if Path(spec.argv[1]).expanduser().resolve() != expected_kernel_path:
+        return True
+
+    return False
+
+
+def ensure_kernel_installed():
+    if _kernel_spec_needs_update():
+        install_kernel()
 
 
 class QudiKernelService(rpyc.Service):
@@ -194,6 +232,8 @@ class QudiIPythonKernel(IPythonKernel):
 if __name__ == '__main__':
     if len(sys.argv) == 2 and sys.argv[1] == 'install':
         install_kernel()
+    elif len(sys.argv) == 2 and sys.argv[1] == 'ensure':
+        ensure_kernel_installed()
     elif len(sys.argv) == 2 and sys.argv[1] == 'uninstall':
         uninstall_kernel()
     else:

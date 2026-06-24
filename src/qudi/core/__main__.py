@@ -19,6 +19,7 @@ If not, see <https://www.gnu.org/licenses/>.
 
 import argparse
 from qudi.core.application import Qudi
+from qudi.core.qudikernel import ensure_kernel_installed
 
 # parse commandline parameters
 parser = argparse.ArgumentParser(prog='python -m qudi.core')
@@ -46,7 +47,16 @@ parser.add_argument(
     default='',
     help='Absolute path to log directory to use instead of the default one "<user_home>/qudi/log/"'
 )
+parser.add_argument(
+    '-k',
+    '--skip-kernel-check',
+    action='store_true',
+    help='Skip the check for a properly installed qudi kernel.',
+)
 args = parser.parse_args()
+
+if not args.skip_kernel_check:
+    ensure_kernel_installed()
 
 app = Qudi(no_gui=args.no_gui, debug=args.debug, log_dir=args.logdir, config_file=args.config)
 app.run()

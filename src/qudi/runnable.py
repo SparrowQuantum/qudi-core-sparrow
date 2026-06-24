@@ -30,6 +30,15 @@ def main():
     """
     myenv = os.environ.copy()
 
+    # Preserve import paths injected by setuptools/nix entrypoint wrapper for spawned process.
+    python_path = os.pathsep.join(path for path in sys.path if path)
+    if python_path:
+        existing_python_path = myenv.get('PYTHONPATH', '')
+        if existing_python_path:
+            myenv['PYTHONPATH'] = f'{python_path}{os.pathsep}{existing_python_path}'
+        else:
+            myenv['PYTHONPATH'] = python_path
+
     # Set parent process PID as environment variable for qudi main process
     if sys.platform == 'win32':
         try:
@@ -44,8 +53,7 @@ def main():
     else:
         myenv['QUDI_PARENT_PID'] = str(os.getpid())
 
-    argv = [sys.executable, '-m', 'core'] + sys.argv[1:]
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    argv = [sys.executable, '-m', 'qudi.core'] + sys.argv[1:]
 
     while True:
         process = subprocess.Popen(argv,

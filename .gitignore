@@ -58,6 +58,7 @@ share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+result
 
 # Installer logs
 pip-log.txt
@@ -113,3 +114,6 @@ dmypy.json
 
 # vscode settings
 .vscode/
+
+# direnv files
+.direnv/

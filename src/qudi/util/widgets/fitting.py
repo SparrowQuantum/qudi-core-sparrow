@@ -195,7 +195,7 @@ class FitConfigurationListView(QtWidgets.QListView):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setVerticalScrollMode(self.ScrollPerPixel)
+        self.setVerticalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
         self.setMouseTracking(True)
         self.installEventFilter(self)
         config_item_delegate = _FitConfigurationItemDelegate(parent=self)

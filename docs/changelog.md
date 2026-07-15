@@ -3,7 +3,7 @@
 ## Pre-Release
 
 ### Breaking Changes
-None
+- Dropped support for rpyc version 5 and lower
 
 ### Bugfixes
 - Fixed a bug where `TextDataStorage` would load one line of data less than it saves.
@@ -11,12 +11,16 @@ None
 since windowing functions have been moved from scipy.signal to scipy.signal.windows.
 - In `qudi.util.widgets.plotting.interactive_curve.InteractiveCurvesWidget`, the plot widget was made into 
 a private attribute. Added a getter method to access it.
+- Workaround for MRO resolution for remote module connections
+- Fixed client crashing when server disconnects for remote module connections by introduncing a new state for module- DISCONNECTED
+- Disabled deactivation of remote hardware module from client for remote module connections
 
 ### New Features
-None
+- Added an new `ConnectorList` type for connecting an unspecified number of modules of the same interface to a module.
+- Added Generic type and updated type hints for ConfigOption, StatusVariable, and ConnectorList classes
 
 ### Other
-None
+- Replaced custom colorscale definitions from `qudi.util.colordefs` with their corresponding `matplotlib` defaults.
 
 
 ## Version 1.7.0

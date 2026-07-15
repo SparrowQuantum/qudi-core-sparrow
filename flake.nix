@@ -17,17 +17,6 @@
         inherit (pkgs) lib;
 
         pythonOverrides = _: super: {
-          # Project needs rpyc 5.*.* but nixpkgs is currently on >6.0.0
-          rpyc = super.rpyc.overridePythonAttrs (_: rec {
-            version = "5.3.1";
-            src = pkgs.fetchFromGitHub {
-              owner = "tomerfiliba";
-              repo = "rpyc";
-              tag = version;
-              hash = "sha256-2b6ryqDqZPs5VniLhCwA1/c9+3CT+JJrr3VwP3G6tpY=";
-            };
-          });
-
           # Fysom does not exist in nixpkgs, so we build it ourselves
           fysom = super.buildPythonPackage rec {
             pname = "fysom";
@@ -128,7 +117,7 @@
         apps = {
           default = {
             type = "app";
-            program = "${qudiCore}/bin/qudi";
+            program = "${devEnv}/bin/qudi";
             meta = {
               description = "Launch Qudi-core";
             };

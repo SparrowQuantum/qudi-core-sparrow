@@ -21,7 +21,8 @@ ToDo: Throw errors around for non-existent directories
 
 __all__ = ['get_appdata_dir', 'get_default_config_dir', 'get_default_log_dir',
            'get_default_data_dir', 'get_daily_directory', 'get_home_dir', 'get_main_dir',
-           'get_userdata_dir', 'get_artwork_dir', 'get_module_app_data_path']
+           'get_userdata_dir', 'get_artwork_dir', 'get_module_app_data_path',
+           'get_namespace_server_port_path']
 
 import datetime
 import os
@@ -201,3 +202,9 @@ def get_module_app_data_path(cls_name: str, module_base: str, module_name: str) 
     """
     file_name = f'status-{cls_name}_{module_base}_{module_name}.cfg'
     return os.path.join(get_appdata_dir(), file_name)
+
+
+def get_namespace_server_port_path() -> str:
+    """Path of the file holding the port the running local namespace server is bound to.
+    """
+    return os.path.join(get_appdata_dir(), 'namespace_server.port')

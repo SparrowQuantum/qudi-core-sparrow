@@ -32,7 +32,7 @@ import tempfile
 from pathlib import Path
 from ipykernel.ipkernel import IPythonKernel
 
-from qudi.core.config import Configuration, ValidationError, YAMLError
+from qudi.util.paths import get_namespace_server_port_path
 
 KERNEL_NAME = 'qudi'
 
@@ -159,18 +159,14 @@ class QudiKernelClient:
         return self.connection.root.get_logger(name)
 
     def connect(self):
-        config = Configuration()
-        try:
-            config.load()
-        except (ValueError, ValidationError, YAMLError):
-            pass
+        port = int(Path(get_namespace_server_port_path()).read_text())
         self.connection = rpyc.connect(host='localhost',
                                        config={'allow_all_attrs': True,
                                                'allow_setattr': True,
                                                'allow_delattr': True,
                                                'allow_pickle': True,
                                                'sync_request_timeout': 3600},
-                                       port=config['namespace_server_port'],
+                                       port=port,
                                        service=self.service_instance)
 
     def disconnect(self):

@@ -6,16 +6,16 @@ build:
     @nix build
 
 # Run qudi-core with GUI
-qudi:
-    @nix run
+qudi PORT='0':
+    @nix run . -- --namespace-port {{PORT}}
 
 # Run qudi-core without GUI
-qudi-headless:
-    @nix run . -- -g 
+qudi-headless PORT='0':
+    @nix run . -- -g --namespace-port {{PORT}}
 
 # Run a Jupyter notebook server for the given directory
-notebook DIR='.':
-    @nix develop -c jupyter notebook --notebook-dir={{DIR}}
+notebook DIR='.' PORT='0':
+    @nix develop -c jupyter notebook --notebook-dir={{DIR}} --port={{ if PORT == '0' { `nix develop -c python -c 'import socket; s = socket.socket(); s.bind(("localhost", 0)); print(s.getsockname()[1])'` } else { PORT } }}
 
 # Check the flake
 check:

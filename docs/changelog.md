@@ -13,10 +13,17 @@ since windowing functions have been moved from scipy.signal to scipy.signal.wind
 a private attribute. Added a getter method to access it.
 
 ### New Features
-None
+- `namespace_server_port: 0` binds a free port. The bound port is written to
+`namespace_server.port` in the app data directory, where the qudi kernel now reads it instead of
+the config.
+- The `-p`/`--namespace-port` command line option overrides the configured namespace server port.
+`just qudi`, `just qudi-headless` and `just notebook` take a `PORT`, defaulting to 0 for a free
+port; `just qudi 18861` restores the old one.
 
 ### Other
-None
+- The flake app runs qudi from its Python environment, so the kernelspec qudi installs points at
+an interpreter that can import qudi. Kernels launched from Jupyter or a notebook server no longer
+die with `ModuleNotFoundError: No module named 'rpyc'`.
 
 
 ## Version 1.7.0

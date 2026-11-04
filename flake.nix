@@ -128,7 +128,8 @@
         apps = {
           default = {
             type = "app";
-            program = "${qudiCore}/bin/qudi";
+            # The env interpreter, not the wrapped script's, so the kernelspec qudi installs can import qudi
+            program = "${devEnv}/bin/qudi";
             meta = {
               description = "Launch Qudi-core";
             };

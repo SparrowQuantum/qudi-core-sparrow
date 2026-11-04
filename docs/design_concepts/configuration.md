@@ -113,7 +113,9 @@ global:
 ```
 
 #### namespace_server_port
-Qudi namespace server port number (`int`) to bind to.  
+Qudi namespace server port number (`int`) to bind to. `0` lets the OS pick a free port; the 
+`--namespace-port` command line option overrides this setting. Qudi writes the bound 
+port to `namespace_server.port` in the app data directory, where IPython kernels look it up.  
 The qudi namespace server is similar to the remote modules server except it always runs only on 
 `localhost` and is unencrypted. It serves as interface to qudi for local running IPython kernels 
 (Jupyter notebooks, qudi console, etc.).

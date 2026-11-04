@@ -98,7 +98,8 @@ class Qudi(QtCore.QObject):
             'Qudi.instance() to get a reference to the already created instance.'
         )
 
-    def __init__(self, no_gui=False, debug=False, log_dir='', config_file=None):
+    def __init__(self, no_gui=False, debug=False, log_dir='', config_file=None,
+                 namespace_port=None):
         super().__init__()
 
         # CLI arguments
@@ -165,7 +166,8 @@ class Qudi(QtCore.QObject):
             parent=self,
             qudi=self,
             name='local-namespace-server',
-            port=self.configuration['namespace_server_port'],
+            port=self.configuration['namespace_server_port'] if namespace_port is None
+            else namespace_port,
             force_remote_calls_by_value=self.configuration['force_remote_calls_by_value']
         )
         self.watchdog = None

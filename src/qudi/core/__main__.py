@@ -53,10 +53,18 @@ parser.add_argument(
     action='store_true',
     help='Skip the check for a properly installed qudi kernel.',
 )
+parser.add_argument(
+    '-p',
+    '--namespace-port',
+    type=int,
+    default=None,
+    help='Port of the local namespace server, overriding the config. 0 picks a free one.',
+)
 args = parser.parse_args()
 
 if not args.skip_kernel_check:
     ensure_kernel_installed()
 
-app = Qudi(no_gui=args.no_gui, debug=args.debug, log_dir=args.logdir, config_file=args.config)
+app = Qudi(no_gui=args.no_gui, debug=args.debug, log_dir=args.logdir, config_file=args.config,
+           namespace_port=args.namespace_port)
 app.run()

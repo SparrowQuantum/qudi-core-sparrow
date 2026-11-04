@@ -24,11 +24,14 @@ __all__ = ('get_remote_module_instance', 'BaseServer', 'RemoteModulesServer', 'Q
 import ssl
 import rpyc
 import weakref
+import threading
+from pathlib import Path
 from PySide6 import QtCore
 from urllib.parse import urlparse
 from rpyc.utils.authenticators import SSLAuthenticator
 
 from qudi.util.mutex import Mutex
+from qudi.util.paths import get_appdata_dir, get_namespace_server_port_path
 from qudi.core.logger import get_logger
 from qudi.core.services import RemoteModulesService, QudiNamespaceService
 
@@ -86,6 +89,7 @@ class _ServerRunnable(QtCore.QObject):
 
         self.service = service
         self.server = None
+        self.bound = threading.Event()
 
         self.host = host
         self.port = port
@@ -122,6 +126,10 @@ class _ServerRunnable(QtCore.QObject):
                                               port=self.port,
                                               protocol_config=self.protocol_config,
                                               authenticator=authenticator)
+            self.port = self.server.port
+            # rpyc only listens inside the blocking start(), too late for clients told the port
+            self.server.listener.listen(self.server.backlog)
+            self.bound.set()
             logger.info(f'Starting RPyC server "{self.thread().objectName()}" on '
                         f'[{self.host}]:{self.port:d}')
             logger.debug(f'{self.thread().objectName()}: '
@@ -131,6 +139,8 @@ class _ServerRunnable(QtCore.QObject):
         except:
             logger.exception(f'Error during start of RPyC Server "{self.thread().objectName()}":')
             self.server = None
+        finally:
+            self.bound.set()
 
     @QtCore.Slot()
     def stop(self):
@@ -219,7 +229,9 @@ class BaseServer(QtCore.QObject):
                 thread = self._thread_manager.get_new_thread(self._name)
                 self._server.moveToThread(thread)
                 thread.started.connect(self._server.run)
+                self._server.bound.clear()
                 thread.start()
+                self._server.bound.wait(timeout=5)
             else:
                 logger.warning(f'RPyC server "{self._name}" is already running.')
 
@@ -290,3 +302,17 @@ class QudiNamespaceServer(BaseServer):
                          name=name,
                          host='localhost',
                          port=port)
+
+    @QtCore.Slot()
+    def start(self):
+        super().start()
+        if self.is_running:
+            get_appdata_dir(create_missing=True)
+            Path(get_namespace_server_port_path()).write_text(str(self._server.port))
+
+    @QtCore.Slot()
+    def stop(self):
+        try:
+            super().stop()
+        finally:
+            Path(get_namespace_server_port_path()).unlink(missing_ok=True)
